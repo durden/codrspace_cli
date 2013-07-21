@@ -3,10 +3,18 @@
 This repository contains code to interact with the
 [codrspace](http://codrspace.com) API via the command-line.
 
-
 ## Usage
 
 `python codrspace_cli.py <filename> [username] [api_key]`
+
+## Install
+    - Clone repository
+    - cd into repository directory
+    - `pip install .`
+
+Now you will have a new script, `codrspace_cli`, available in your PATH.
+
+### Codrspace credentials
 
 You may omit the `username` and `api_key` in the command-line arguments if you
 create a file that contains this information in `~/.codrspace_credentials`.
@@ -17,3 +25,7 @@ api_key=my_codrspace_api_key
 
 You can get the above information by logging into your codrspace blog and going
 to the Settings->API Settings page, `http://codrspace.com/api-settings/`.
+
+### Expected file format
+
+In-progress

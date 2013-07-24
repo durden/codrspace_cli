@@ -113,6 +113,9 @@ def update_post(filename, params):
 
     response.raise_for_status()
 
+    print 'Post id %d updated, see changes at: %s' % (response.json['id'],
+                                                      response.json['url'])
+
 
 def create_post(filename, params):
     """
@@ -128,6 +131,9 @@ def create_post(filename, params):
     response = requests.post(url, data=json.dumps(data), headers=headers,
                              params=params)
     response.raise_for_status()
+
+    print 'New post id %d created at: %s' % (response.json['id'],
+                                             response.json['url'])
 
 
 def _post_id_from_error(error):

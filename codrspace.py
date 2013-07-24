@@ -4,10 +4,12 @@ Script to create/update posts on codrspace.com
 
 import os
 import json
+import re
 import requests
 import sys
 
 CREDENTIALS_FILE = os.path.expanduser('~/.codrspace_credentials')
+BASE_URL = 'http://codrspace.com/api/v1/'
 
 # FIXME: Allow users to specify slug in file they pass
 #   - Maybe use first 2 lines of file to look like this:
@@ -15,6 +17,37 @@ CREDENTIALS_FILE = os.path.expanduser('~/.codrspace_credentials')
 #       slug: <slug>
 #   - if no slug line exists just autogenerate one
 #   - title is required
+
+
+def _parse_args():
+    """Parse arguments and return dict of parameters to pass to HTTP API"""
+
+    # Subtract 1 for sys.argv[0], command name
+    num_args = len(sys.argv) - 1
+
+    if num_args < 1:
+        print 'Must specify filename to post/update from via command-line'
+        sys.exit(1)
+
+    args = {}
+    args['filename'] = sys.argv[1]
+
+    if len(sys.argv) == 4:
+        args['username'] = sys.argv[2]
+        args['api_key'] = sys.argv[3]
+    elif os.path.exists(CREDENTIALS_FILE):
+        args = _get_creds_from_file(CREDENTIALS_FILE)
+    else:
+        print 'Must have "%s" credentials file or specify username/password on command-line'
+        sys.exit(1)
+
+    return args
+
+
+def _append_message_and_raise_exception(error, message):
+    """Append given string message to existing error and raise"""
+
+    raise type(error), type(error)(error.message + '\n%s' % message), sys.exc_info()[2]
 
 
 def _get_creds_from_file(filename):
@@ -62,48 +95,89 @@ def _get_post_data(filename):
     return data
 
 
-def _create_or_update_post(filename, params):
-    """Create or update post with contents of given filename"""
+def update_post(filename, params):
+    """
+    Update a post from contents of filename and with given params dict
+
+    params must contain 'title', 'content', and 'id' keys
+    """
 
     data = _get_post_data(filename)
-
-    url = 'http://codrspace.com/api/v1/post/'
     headers = {'content-type': 'application/json'}
+    _id = params.pop('id')
+
+    url = '%spost/%d/' % (BASE_URL, _id)
+
+    response = requests.put(url, data=json.dumps(data), headers=headers,
+                            params=params)
+
+    response.raise_for_status()
+
+
+def create_post(filename, params):
+    """
+    Create post with contents of given filename and params query string dict
+
+    params must contain 'title' and 'content'
+    """
+
+    data = _get_post_data(filename)
+    headers = {'content-type': 'application/json'}
+    url = '%spost/' % (BASE_URL)
 
     response = requests.post(url, data=json.dumps(data), headers=headers,
                              params=params)
-    print response
+    response.raise_for_status()
 
-    # Response 400 means slug already exists so we should update the post
 
-    # FIXME: Maybe we should ask user if they want to update the post or not?
+def _post_id_from_error(error):
+    """Parse error message and status code for exisint post id"""
 
-    # FIXME: Update line 150 on aps/codrspace/forms.py to include id in error
-    # message
+    # 400 code means post exists so
+    status_code = error.response.status_code
+    if status_code != 400:
+        raise NotImplementedError('Unhandled API response code: %d' % (
+                                                                status_code))
+
+    err_msg = error.response.content
+    m_obj = re.search('(id: \d+)', err_msg)
+
+    if not m_obj:
+        raise ValueError('Unable to parse error message for existing ID')
+
+    tokens = m_obj.group().split(':')
+
+    try:
+        existing_id = int(tokens[1])
+    except IndexError:
+        raise IndexError('Message missing tokens (API error: "%s")' % (
+                                                        err_msg))
+    except ValueError:
+        raise ValueError('Message missing integer id (API error: "%s")' % (
+                                                        err_msg))
+
+    return existing_id
+
 
 def main():
     """Main"""
 
-    # Subtract 1 for sys.argv[0], command name
-    num_args = len(sys.argv) - 1
+    params = _parse_args()
+    filename = params.pop('filename')
 
-    if num_args < 1:
-        print 'Must specify filename to post/update from via command-line'
-        sys.exit(1)
+    try:
+        create_post(filename, params)
+    except requests.exceptions.HTTPError as err:
+        # FIXME: Add this as a command line param, update post or force user to
+        # change title to generate new slug
 
-    filename = sys.argv[1]
+        params['id'] = _post_id_from_error(err)
 
-    if os.path.exists(CREDENTIALS_FILE):
-        params = _get_creds_from_file(CREDENTIALS_FILE)
-    elif len(sys.argv) == 4:
-        params = {}
-        params['username'] = sys.argv[2]
-        params['api_key'] = sys.argv[3]
-    else:
-        print 'Must have "%s" credentials file or specify username/password on command-line'
-        sys.exit(1)
-
-    _create_or_update_post(filename, params)
+        try:
+            update_post(filename, params)
+        except requests.exceptions.HTTPError as err:
+            msg = 'Failed creating new post and updating existing post'
+            _append_message_and_raise_exception(err, msg)
 
 
 if __name__ == '__main__':

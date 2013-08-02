@@ -36,7 +36,7 @@ def _parse_args():
         args['username'] = sys.argv[2]
         args['api_key'] = sys.argv[3]
     elif os.path.exists(CREDENTIALS_FILE):
-        args = _get_creds_from_file(CREDENTIALS_FILE)
+        args.update(_get_creds_from_file(CREDENTIALS_FILE))
     else:
         print 'Must have "%s" credentials file or specify username/password on command-line'
         sys.exit(1)

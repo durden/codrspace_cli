@@ -89,7 +89,7 @@ def _get_creds_from_file(filename):
 def _get_datetime_str():
     """Get current datetime in proper API accepted format"""
 
-    return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.utcnow().strftime('%Y-%m-%d %I:%M:%S')
 
 
 def _get_post_data(filename):
@@ -105,7 +105,11 @@ def _get_post_data(filename):
     data['title'] = None
 
     # Key is token for file, value is token for api call
-    keyword_to_api = {'title:': 'title', 'slug:': 'slug', 'status:': 'status'}
+    keyword_to_api = {'title:': 'title',
+                      'slug:': 'slug',
+                      'status:': 'status',
+                      'date:': 'publish_dt'}
+
     num_meta_lines = len(keyword_to_api.keys())
 
     with open(filename, 'r') as f:
@@ -134,7 +138,8 @@ def _get_post_data(filename):
                                                                 data['status'])
         # API requires date for published posts, so default to now
         if data['status'] == 'published':
-            data['publish_dt'] = _get_datetime_str()
+            if 'publish_dt' not in data:
+                data['publish_dt'] = _get_datetime_str()
 
     data['content'] = ''.join(data['content'])
     return data

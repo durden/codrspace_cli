@@ -181,14 +181,22 @@ def create_post(filename, params):
                                              response.json['url'])
 
 
+def _get_content_from_error(error):
+    """Get error string from error response object"""
+
+    return json.loads(error.response.content)
+
+
 def _post_id_from_error(error):
     """Parse error message and status code for exisint post id"""
 
     # 400 code means post exists so
     status_code = error.response.status_code
     if status_code != 400:
-        raise NotImplementedError('Unhandled API response code: %d' % (
-                                                                status_code))
+        err_msg = _get_content_from_error(error)['error_message']
+        raise NotImplementedError('Unhandled API response code: %d (%s)' % (
+                                                                status_code,
+                                                                err_msg))
 
     err_msg = error.response.content
     m_obj = re.search('(id: \d+)', err_msg)
@@ -227,7 +235,9 @@ def main():
         try:
             update_post(filename, params)
         except requests.exceptions.HTTPError as err:
-            msg = 'Failed creating new post and updating existing post'
+            err_msg = _get_content_from_error(err)
+            msg = 'Failed creating new post and updating existing post (%s)' % (err_msg)
+
             _append_message_and_raise_exception(err, msg)
 
 

@@ -12,6 +12,7 @@ None of the above are required.  The defaults are:
     status: 'draft'
 """
 
+from datetime import datetime
 import os
 import json
 import re
@@ -85,6 +86,12 @@ def _get_creds_from_file(filename):
     return creds
 
 
+def _get_datetime_str():
+    """Get current datetime in proper API accepted format"""
+
+    return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+
 def _get_post_data(filename):
     """
     Read data from filename that should be used in codrspace post
@@ -96,10 +103,6 @@ def _get_post_data(filename):
     data = {}
     data['content'] = []
     data['title'] = None
-    #data['slug'] = None
-    data['status'] = 'draft'
-
-    valid_status = ['draft', 'published']
 
     # Key is token for file, value is token for api call
     keyword_to_api = {'title:': 'title', 'slug:': 'slug', 'status:': 'status'}
@@ -125,8 +128,13 @@ def _get_post_data(filename):
                 else:
                     data['content'].append(line)
 
-    assert data['status'] in valid_status, 'Invalid status argument %s' % (
+    if 'status' in data:
+        valid_status = ['draft', 'published']
+        assert data['status'] in valid_status, 'Invalid status argument %s' % (
                                                                 data['status'])
+        # API requires date for published posts, so default to now
+        if data['status'] == 'published':
+            data['publish_dt'] = _get_datetime_str()
 
     data['content'] = ''.join(data['content'])
     return data

@@ -162,9 +162,10 @@ def update_post(filename, params):
                             params=params)
 
     response.raise_for_status()
+    json_ = response.json()
 
-    print 'Post id %d updated, see changes at: %s' % (response.json['id'],
-                                                      response.json['url'])
+    print 'Post id %d updated, see changes at: %s' % (json_['id'],
+                                                      json_['url'])
 
 
 def create_post(filename, params):
@@ -181,9 +182,9 @@ def create_post(filename, params):
     response = requests.post(url, data=json.dumps(data), headers=headers,
                              params=params)
     response.raise_for_status()
+    json_ = response.json()
 
-    print 'New post id %d created at: %s' % (response.json['id'],
-                                             response.json['url'])
+    print 'New post id %d created at: %s' % (json_['id'], json_['url'])
 
 
 def _get_content_from_error(error):

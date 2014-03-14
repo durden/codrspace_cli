@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='codrspace_cli',
-      version='0.1',
+      version='0.2',
       description='Create/update posts on codrspace.com via command-line',
       author='Luke Lee',
       author_email='durdenmisc@gmail.com',

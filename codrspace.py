@@ -44,7 +44,7 @@ def _parse_args():
     elif os.path.exists(CREDENTIALS_FILE):
         args.update(_get_creds_from_file(CREDENTIALS_FILE))
     else:
-        print 'Must have "%s" credentials file or specify username/password on command-line'
+        print 'Must have "%s" credentials file or specify username/password on command-line' % (CREDENTIALS_FILE)
         sys.exit(1)
 
     return args

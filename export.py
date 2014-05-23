@@ -11,6 +11,8 @@ import codrspace
 
 DOMAIN = 'http://codrspace.com/'
 
+VERBOSITY = 0
+
 
 def get_posts_from_json_file(filename, max_count):
     # max_count == 0 means 'all'
@@ -29,7 +31,9 @@ def get_posts(creds, max_count, cache=False):
     # max_count == 0 means 'all'
 
     def send(url):
-        print 'sending', url
+        if VERBOSITY > 1:
+            print 'sending', url
+
         response = requests.get(url, params=creds)
         response.raise_for_status()
         return response.json()
@@ -110,7 +114,9 @@ def _update_timestamp(filename, post_date):
 
 def _write_file(filename, post, tag, username, require_published=True):
     if require_published and post['status'] != 'published':
-        print 'Skipping %s, not published yet' % (post['slug'])
+        if VERBOSITY > 1:
+            print 'Skipping %s, not published yet' % (post['slug'])
+
         return
 
     # Some reason codrspace exports with windows line endings
@@ -133,14 +139,13 @@ def _write_file(filename, post, tag, username, require_published=True):
             content = _codrspace_tags_to_html(post['content'],
                                               post['title'],
                                               username)
-            newline_cleanup(content)
-
-            file_obj.write(unicode(content))
+            file_obj.write(unicode(newline_cleanup(content)))
     except UnicodeEncodeError, err:
         print 'Failed writing %s (%s)' % (filename, err)
         os.unlink(filename)
     else:
-        print 'Wrote', filename
+        if VERBOSITY:
+            print 'Wrote', filename
 
 
 @click.group()
@@ -151,9 +156,13 @@ def cli():
 @cli.command()
 @click.argument('output_dir')
 @click.argument('tag')
+@click.option('-v', '--verbose', count=True)
 @click.option('--count', default=0, type=int, show_default=False,
               help='Max number of posts to retrive')
-def from_http(output_dir, tag, count):
+def from_http(output_dir, tag, count, verbose):
+    global VERBOSITY
+    VERBOSITY = verbose
+
     creds = codrspace._get_creds_from_file(codrspace.CREDENTIALS_FILE)
     for post in get_posts(creds, int(count)):
         filename = '%s.md' % (os.path.join(output_dir, post['slug']))
@@ -165,9 +174,13 @@ def from_http(output_dir, tag, count):
 @click.argument('output_dir')
 @click.argument('tag')
 @click.argument('username')
+@click.option('-v', '--verbose', count=True)
 @click.option('--count', default=0, type=int, show_default=False,
               help='Max number of posts to retrive')
-def from_file(json_file, output_dir, tag, username, count):
+def from_file(json_file, output_dir, tag, username, count, verbose):
+    global VERBOSITY
+    VERBOSITY = verbose
+
     for post in get_posts_from_json_file(json_file, int(count)):
         filename = '%s.md' % (os.path.join(output_dir, post['slug']))
         _write_file(filename, post, tag, username)

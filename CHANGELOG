@@ -1,0 +1,7 @@
+# CHANGELOG
+
+## 0.3.0 - 10/11/14
+
+### Added
+    - Ability to export with codrspace_export script
+    - click project for CLI argument parsing in Python

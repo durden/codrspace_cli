@@ -10,6 +10,7 @@ install_test_dist:
 	# Must install the requirements separately b/c they aren't
 	# available on test server
 	pip install requests
+	pip install click
 	pip install -i https://testpypi.python.org/pypi codrspace_cli
 
 test_install:

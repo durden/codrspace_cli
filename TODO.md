@@ -6,3 +6,7 @@
 - Add to pypi
 - Add option to give credentials via command line and automatically save for
   later
+- Cleanup architecture
+    - create.py and export.py aren't the best names
+    - Maybe make these the function names in a single module and have a single
+      script handle both?

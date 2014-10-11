@@ -7,7 +7,7 @@ import os
 import click
 import requests
 
-import codrspace
+import create
 
 DOMAIN = 'http://codrspace.com/'
 
@@ -39,7 +39,7 @@ def get_posts(creds, max_count, cache=False):
         return response.json()
 
     headers = {'content-type': 'application/json'}
-    url = '%s/post/' % (codrspace.BASE_URL)
+    url = '%s/post/' % (create.BASE_URL)
 
     json = None
 
@@ -147,8 +147,10 @@ def _write_file(filename, post, tag, username, require_published=True):
         if VERBOSITY:
             print 'Wrote', filename
 
+# Use -h in addition to --help
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
 def cli():
     pass
 
@@ -163,7 +165,7 @@ def from_http(output_dir, tag, count, verbose):
     global VERBOSITY
     VERBOSITY = verbose
 
-    creds = codrspace._get_creds_from_file(codrspace.CREDENTIALS_FILE)
+    creds = create._get_creds_from_file(create.CREDENTIALS_FILE)
     for post in get_posts(creds, int(count)):
         filename = '%s.md' % (os.path.join(output_dir, post['slug']))
         _write_file(filename, post, tag, creds['username'])

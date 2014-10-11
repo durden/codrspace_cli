@@ -1,18 +1,20 @@
 # Codrspace CLI
 
 This repository contains code to interact with the
-[codrspace](http://codrspace.com) API via the command-line.
+[codrspace](http://codrspace.com) API via the command-line.  It provides two
+scripts import.py and export.py (or codrspace_import and codrspace_export) once
+fully installed.
 
 ## Usage
 
-`python codrspace_cli.py <filename> [username] [api_key]`
+`python codrspace_import.py <filename> [username] [api_key]`
+`python codrspace_export.py <filename> [username] [api_key]`
 
 ## Install
-    - Clone repository
-    - cd into repository directory
-    - `pip install .`
+    - `pip install codrspace_cli`
 
-Now you will have a new script, `codrspace_cli`, available in your PATH.
+Now you will now have 2 new scripts, `codrspace_import` and `codrspace_export`
+available in your PATH.
 
 ### Codrspace credentials
 
@@ -47,11 +49,11 @@ None of the above are required.  The defaults are:
 I use the following line to automatically send the current file in vim to the
 codrspace API:
 
-`:nnoremap <leader>c :! codrspace_cli '%:p'<cr>`
+`:nnoremap <leader>c :! codrspace_import '%:p'<cr>`
 
 The above line assumes you have your codrspace API credentials stored in
 `~/.codrspace_credentials`.  You can change the above line to something
 similiar to the following if you do **not** have your credentials stored this
 way:
 
-`:nnoremap <leader>c :! codrspace_cli '%:p' <codrspace_username> <codrspace_apikey><cr>`
+`:nnoremap <leader>c :! codrspace_import '%:p' <codrspace_username> <codrspace_apikey><cr>`

@@ -12,7 +12,10 @@ fully installed.
 `python codrspace_export.py <filename> [username] [api_key]`
 
 ## Install
-    - `pip install codrspace_cli`
+
+`pip install codrspace_cli`
+
+You can see the latest release on [pypi](https://pypi.python.org/pypi/codrspace_cli).
 
 Now you will now have 2 new scripts, `codrspace_import` and `codrspace_export`
 available in your PATH.
